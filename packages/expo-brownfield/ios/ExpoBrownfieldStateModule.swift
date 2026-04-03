@@ -1,4 +1,5 @@
 import ExpoModulesCore
+import ExpoModulesJSI
 
 let KEY_RECREATED_EVENT_NAME = "onKeyRecreated"
 
@@ -20,7 +21,7 @@ public class ExpoBrownfieldStateModule: Module {
       }
       
       Function("set") { (state: SharedState, value: JavaScriptValue?) in
-        state.set(value?.getRaw())
+        state.set(value?.getAny())
       }
     }
 

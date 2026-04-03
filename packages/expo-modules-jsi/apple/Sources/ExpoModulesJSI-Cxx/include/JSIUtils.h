@@ -7,6 +7,7 @@
 #include <hermes/hermes.h>
 #include "HostFunctionClosure.h"
 #include "CppError.h"
+#include "MemoryBuffer.h"
 #include "NativeState.h"
 
 namespace jsi = facebook::jsi;
@@ -15,6 +16,10 @@ namespace expo {
 
 inline jsi::Value valueFromFunction(jsi::Runtime &runtime, const jsi::Function &function) {
   return jsi::Value(runtime, function);
+}
+
+inline jsi::Value valueFromArrayBuffer(jsi::Runtime &runtime, const jsi::ArrayBuffer &arrayBuffer) {
+  return jsi::Value(runtime, arrayBuffer);
 }
 
 // `jsi::Object::setProperty` is a template function that Swift does not support. We need to provide specialized versions.
@@ -108,6 +113,34 @@ inline size_t arrayBufferSize(jsi::Runtime &runtime, const jsi::ArrayBuffer &arr
 
 inline uint8_t *arrayBufferData(jsi::Runtime &runtime, const jsi::ArrayBuffer &arrayBuffer) {
   return arrayBuffer.data(runtime);
+}
+
+/**
+ * Creates a new ArrayBuffer of the given size with zero-initialized memory.
+ */
+inline jsi::ArrayBuffer createArrayBuffer(jsi::Runtime &runtime, size_t size) {
+  uint8_t *data = new uint8_t[size]();
+  auto buffer = std::make_shared<MemoryBuffer>(data, size, [data]() { delete[] data; });
+  return jsi::ArrayBuffer(runtime, std::move(buffer));
+}
+
+/**
+ * Creates a new ArrayBuffer that wraps the given native data pointer.
+ * The cleanup function is called (with the cleanup context) when the ArrayBuffer is deallocated.
+ */
+inline jsi::ArrayBuffer createArrayBuffer(
+  jsi::Runtime &runtime,
+  uint8_t *data,
+  size_t size,
+  void *_Nullable cleanupContext,
+  void (* _Nonnull cleanupFunction)(void * _Nonnull)
+) {
+  auto buffer = std::make_shared<MemoryBuffer>(data, size, [cleanupContext, cleanupFunction]() {
+    if (cleanupContext) {
+      cleanupFunction(cleanupContext);
+    }
+  });
+  return jsi::ArrayBuffer(runtime, std::move(buffer));
 }
 
 // MARK: - Native state

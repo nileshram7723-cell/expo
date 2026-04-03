@@ -107,20 +107,27 @@ open class JavaScriptRuntime: Equatable, @unchecked Sendable {
    Creates a JavaScript host object with given implementations for property getter, property setter, property names getter and dealloc.
    */
   public func createHostObject(
-    get: @escaping (_ propertyName: String) -> JavaScriptValue,
-    set: @escaping (_ propertyName: String, _ value: JavaScriptValue) -> Void,
-    getPropertyNames: @escaping () -> [String],
-    dealloc: @escaping () -> Void
+    get: @escaping @JavaScriptActor (_ propertyName: String) -> JavaScriptValue,
+    set: @escaping @JavaScriptActor (_ propertyName: String, _ value: JavaScriptValue) -> Void,
+    getPropertyNames: @escaping @JavaScriptActor () -> [String],
+    dealloc: @escaping @JavaScriptActor () -> Void
   ) -> JavaScriptObject {
     func getter(context: UnsafeMutableRawPointer, propertyName: UnsafePointer<CChar>) -> facebook.jsi.Value {
       let context = Unmanaged<HostObjectContext>.fromOpaque(context).takeUnretainedValue()
-      return context.get(String(cString: propertyName)).asJSIValue()
+      let propertyName = String(cString: propertyName)
+
+      return JavaScriptActor.assumeIsolated {
+        return context.get(propertyName).asJSIValue()
+      }
     }
 
     func setter(context: UnsafeMutableRawPointer, propertyName: UnsafePointer<CChar>, valuePointer: UnsafeMutableRawPointer) {
       let context = Unmanaged<HostObjectContext>.fromOpaque(context).takeUnretainedValue()
       let value = JavaScriptValue(context.runtime, valuePointer.assumingMemoryBound(to: facebook.jsi.Value.self).move())
-      context.set(String(cString: propertyName), value)
+      let propertyName = String(cString: propertyName)
+      return JavaScriptActor.assumeIsolated {
+        context.set(propertyName, value)
+      }
     }
 
     func propertyNamesGetter(context: UnsafeMutableRawPointer) -> expo.HostObjectCallbacks.PropNameIds {
@@ -129,7 +136,12 @@ open class JavaScriptRuntime: Equatable, @unchecked Sendable {
       guard let runtime = context.runtime else {
         FatalError.runtimeLost()
       }
-      let propertyNames = context.getPropertyNames()
+      // Get property names within the actor isolation, but build the vector outside
+      // to avoid returning a non-copyable C++ type through `assumeIsolated`
+      // (its `withoutActuallyEscaping` forces a copy of the return value).
+      let propertyNames: [String] = JavaScriptActor.assumeIsolated {
+        return context.getPropertyNames()
+      }
       var vector = expo.HostObjectCallbacks.PropNameIds()
 
       vector.reserve(propertyNames.count)
@@ -150,6 +162,28 @@ open class JavaScriptRuntime: Equatable, @unchecked Sendable {
     let hostObject = expo.HostObject.makeObject(pointee, consume callbacks)
 
     return JavaScriptObject(self, hostObject)
+  }
+
+  // MARK: - Creating array buffers
+
+  /**
+   Creates a new ArrayBuffer of the given size with zero-initialized memory.
+   */
+  public func createArrayBuffer(size: Int) -> JavaScriptArrayBuffer {
+    let jsiArrayBuffer = expo.createArrayBuffer(pointee, size)
+    return JavaScriptArrayBuffer(self, jsiArrayBuffer)
+  }
+
+  /**
+   Creates a new ArrayBuffer that wraps the given native data pointer.
+   The cleanup closure is called when the ArrayBuffer is garbage collected.
+   */
+  public func createArrayBuffer(data: UnsafeMutablePointer<UInt8>, size: Int, cleanup: @escaping @Sendable () -> Void) -> JavaScriptArrayBuffer {
+    let context = Unmanaged.passRetained(CleanupBox(cleanup)).toOpaque()
+    let jsiArrayBuffer = expo.createArrayBuffer(pointee, data, size, context) { context in
+      Unmanaged<CleanupBox>.fromOpaque(context).release()
+    }
+    return JavaScriptArrayBuffer(self, jsiArrayBuffer)
   }
 
   // MARK: - Creating arrays

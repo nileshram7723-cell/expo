@@ -199,7 +199,7 @@ public final class SQLiteModule: Module {
       AsyncFunction("runAsync") { (statement: NativeStatement, database: NativeDatabase, bindParams: [String: Any], bindBlobParams: [String: NativeArrayBuffer], shouldPassAsArray: Bool) -> [String: Any] in
         return try run(statement: statement, database: database, bindParams: bindParams, bindBlobParams: bindBlobParams, shouldPassAsArray: shouldPassAsArray)
       }.runOnQueue(moduleQueue)
-      Function("runSync") { (statement: NativeStatement, database: NativeDatabase, bindParams: [String: Any], bindBlobParams: [String: JavaScriptArrayBuffer], shouldPassAsArray: Bool) -> [String: Any] in
+      Function("runSync") { (statement: NativeStatement, database: NativeDatabase, bindParams: [String: Any], bindBlobParams: [String: ArrayBuffer], shouldPassAsArray: Bool) -> [String: Any] in
         return try run(statement: statement, database: database, bindParams: bindParams, bindBlobParams: bindBlobParams, shouldPassAsArray: shouldPassAsArray)
       }
 
@@ -287,14 +287,14 @@ public final class SQLiteModule: Module {
       AsyncFunction("applyChangesetAsync") { (session: NativeSession, database: NativeDatabase, changeset: NativeArrayBuffer) in
         try sessionApplyChangeset(database: database, session: session, changeset: changeset)
       }.runOnQueue(moduleQueue)
-      Function("applyChangesetSync") { (session: NativeSession, database: NativeDatabase, changeset: JavaScriptArrayBuffer) in
+      Function("applyChangesetSync") { (session: NativeSession, database: NativeDatabase, changeset: ArrayBuffer) in
         try sessionApplyChangeset(database: database, session: session, changeset: changeset)
       }
 
       AsyncFunction("invertChangesetAsync") { (session: NativeSession, database: NativeDatabase, changeset: NativeArrayBuffer) -> NativeArrayBuffer in
         return try sessionInvertChangeset(database: database, session: session, changeset: changeset)
       }.runOnQueue(moduleQueue)
-      Function("invertChangesetSync") { (session: NativeSession, database: NativeDatabase, changeset: JavaScriptArrayBuffer) -> NativeArrayBuffer in
+      Function("invertChangesetSync") { (session: NativeSession, database: NativeDatabase, changeset: ArrayBuffer) -> NativeArrayBuffer in
         return try sessionInvertChangeset(database: database, session: session, changeset: changeset)
       }
     }

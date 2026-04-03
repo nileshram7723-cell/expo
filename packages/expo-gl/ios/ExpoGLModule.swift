@@ -20,15 +20,15 @@ public final class ExpoGLModule: Module {
         promise.reject("E_GL_APP_CONTEXT_NOT_FOUND", "ExpoGL.createContextAsync: Unable to get the app context")
         return
       }
-      let glContext = EXGLContext(delegate: nil, runtime: runtime, fileSystem: fileSystem)
-
-      glContext.prepare({ success in
-        if success {
-          promise.resolve(["exglCtxId": glContext.contextId as NSNumber])
-        } else {
-          promise.reject("E_GL_CONTEXT_NOT_INITIALIZED", "ExpoGL.createContextAsync: Unexpected error occurred when initializing headless context")
-        }
-      }, andEnableExperimentalWorkletSupport: false)
+//      let glContext = EXGLContext(delegate: nil, runtime: runtime, fileSystem: fileSystem)
+//
+//      glContext.prepare({ success in
+//        if success {
+//          promise.resolve(["exglCtxId": glContext.contextId as NSNumber])
+//        } else {
+//          promise.reject("E_GL_CONTEXT_NOT_INITIALIZED", "ExpoGL.createContextAsync: Unexpected error occurred when initializing headless context")
+//        }
+//      }, andEnableExperimentalWorkletSupport: false)
     }
 
     AsyncFunction("destroyContextAsync") { (contextId: UInt, promise: Promise) in

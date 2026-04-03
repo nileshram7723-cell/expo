@@ -1,6 +1,7 @@
 // Copyright 2025-present 650 Industries. All rights reserved.
 
 import Dispatch
+import ExpoModulesJSI
 
 /**
  Optimized asynchronous function definition.
@@ -44,12 +45,13 @@ public struct OptimizedAsyncFunctionDefinition: AnyAsyncFunctionDefinition, @unc
 
   @JavaScriptActor
   public func build(appContext: AppContext) throws -> JavaScriptObject {
-    return try appContext.runtime.createAsyncFunction(
-      name,
-      typeEncoding: typeEncoding,
-      argsCount: argsCount,
-      body: block
-    )
+//    return try appContext.runtime.createAsyncFunction(
+//      name,
+//      typeEncoding: typeEncoding,
+//      argsCount: argsCount,
+//      body: block
+//    )
+    fatalError()
   }
 
   // MARK: - AnyAsyncFunctionDefinition

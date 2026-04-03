@@ -27,9 +27,9 @@ public final class LegacyEventEmitterCompat {
 
     runtime.schedule {
       for holder in moduleHoldersWithEvent {
-        if let jsObject = holder.javaScriptObject {
-          JSUtils.emitEvent(name, to: jsObject, withArguments: eventArguments.value, in: runtime)
-        }
+//        if let jsObject = holder.javaScriptObject {
+//          JSUtils.emitEvent(name, to: jsObject, withArguments: eventArguments.value, in: runtime)
+//        }
       }
     }
   }

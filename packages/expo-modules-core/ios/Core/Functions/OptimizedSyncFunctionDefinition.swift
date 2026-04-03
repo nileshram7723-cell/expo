@@ -1,5 +1,7 @@
 // Copyright 2025-present 650 Industries. All rights reserved.
 
+import ExpoModulesJSI
+
 /**
  Optimized synchronous function definition.
  This is used by the `@OptimizedFunction` macro with specific type signatures.
@@ -47,16 +49,21 @@ public struct OptimizedSyncFunctionDefinition: AnySyncFunctionDefinition, @unche
     throw GenericException("OptimizedSyncFunctionDefinition cannot be called directly")
   }
 
+  public func call(_ appContext: AppContext, this: JavaScriptValue, arguments: consuming JavaScriptValuesBuffer) throws(Exception) -> ExpoModulesJSI.JavaScriptValue {
+    throw GenericException("OptimizedSyncFunctionDefinition cannot be called directly")
+  }
+
   // MARK: - JavaScriptObjectBuilder
 
   @JavaScriptActor
   public func build(appContext: AppContext) throws -> JavaScriptObject {
-    return try appContext.runtime.createSyncFunction(
-      name,
-      typeEncoding: typeEncoding,
-      argsCount: argsCount,
-      body: block
-    )
+//    return try appContext.runtime.createSyncFunction(
+//      name,
+//      typeEncoding: typeEncoding,
+//      argsCount: argsCount,
+//      body: block
+//    )
+    fatalError()
   }
 
   // MARK: - Descriptor Factory
